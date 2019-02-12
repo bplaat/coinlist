@@ -83,7 +83,7 @@
                             setTimeout(self.fetchData, 60 * 1000);
                             self.coins = JSON.parse(xhr.responseText);
                         }
-                        xhr.open('GET', 'https://api.coinmarketcap.com/v1/ticker/?convert=EUR&limit=100');
+                        xhr.open('GET', 'https://bastiaan.plaatsoft.nl/p.php?url=' + encodeURIComponent('https://api.coinmarketcap.com/v1/ticker/?convert=EUR&limit=100'));
                         xhr.send();
                     }
                 }
