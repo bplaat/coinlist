@@ -40,8 +40,8 @@ td,th{padding:.5em 1em;text-align:left}
                     <th>ATH</th>
                 </tr>
             </thead>
-            <tbody>
-                <tr v-cloak v-if="coins.length > 0" v-for="coin in coins" class="coin">
+            <tbody v-cloak v-if="coins.length">
+                <tr class="coin" v-for="coin in coins">
                     <td>{{ coin.market_cap_rank }}</td>
                     <td>
                         <img class="coin-icon" :src="coin.image" :alt="coin.name + ' icon'" loading="lazy">
@@ -62,7 +62,9 @@ td,th{padding:.5em 1em;text-align:left}
                     </td>
                     <td>{{ coin.ath | currency }}</td>
                 </tr>
-                <tr v-else>
+            </tbody>
+            <tbody v-else>
+                <tr>
                     <td colspan="10">Loading...</td>
                 </tr>
             </tbody>
@@ -75,10 +77,6 @@ var app = new Vue({
 
     data: {
         coins: []
-    },
-
-    created: function () {
-        this.fetchData();
     },
 
     filters: {
@@ -98,6 +96,11 @@ var app = new Vue({
         }
     },
 
+    created: function () {
+        setInterval(this.fetchData, 10 * 1000);
+        this.fetchData();
+    },
+
     methods: {
         getColor: function (number) {
             return parseFloat(number) > 0 ? 'positive' : 'negative';
@@ -108,7 +111,6 @@ var app = new Vue({
             var xhr = new XMLHttpRequest();
             xhr.onload = function () {
                 self.coins = JSON.parse(xhr.responseText);
-                setTimeout(self.fetchData, 10 * 1000);
             };
             xhr.open('GET', 'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&price_change_percentage=1h,24h,7d');
             xhr.send();
