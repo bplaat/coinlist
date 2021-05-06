@@ -7,37 +7,54 @@
     <script src="/vue.min.js"></script>
     <style>
 *{box-sizing:border-box}
-body,table{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubuntu,Cantarell,'Open Sans','Helvetica Neue',sans-serif;font-size:16px;line-height:1.5}
-body{margin:0;color:#111;background-color:#fff}
+body,table,select{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubuntu,Cantarell,'Open Sans','Helvetica Neue',sans-serif;font-size:16px;line-height:1.5}
+body{margin:0;color:#111;background-color:#fff;overflow-y:scroll}
 a{color:inherit;text-decoration:none;font-weight:bold}a:hover,a:focus{text-decoration:underline}
-#app{padding:.5em 1em;margin:0 auto;width:90em}
+#app{padding:.5em 1em;margin:0 auto;width:90em}[v-cloak]{display:none}
+
+.columns{display:flex}.column{flex:1}
+.options{display:flex;justify-content:flex-end;align-items:center}
+.select{padding:.5em 1em}
+
+.table{width:100%;border-collapse:collapse;table-layout:fixed}
+.table>thead>tr{border-bottom:2px solid #ccc}
+.table>tbody>tr{border-bottom:1px solid #ddd}
+.table td,.table th{padding:.5em 1em;text-align:left}
+.positive{color:green}.negative{color:red}
 .coin{height:4em}
 .coin-icon{width:32px;height:32px;margin-right:16px;vertical-align:middle}
 .coin-symbol{color:#777}
-table{width:100%;border-collapse:collapse}
-thead>tr{border-bottom:2px solid #ccc}
-tbody>tr{border-bottom:1px solid #ddd}
-td,th{padding:.5em 1em;text-align:left}
-.positive{color:green}.negative{color:red}
-[v-cloak]{display:none}
     </style>
 </head>
 <body>
     <div id="app">
-        <h1><a href="/">Cryptocurrency coins list</a></h1>
-        <table>
+        <div class="columns">
+            <div class="column">
+                <h1><a href="/">Cryptocurrency coins list</a></h1>
+            </div>
+
+            <div class="column options">
+                <select class="select" v-model="baseCurrency">
+                    <option value="USD">US Dollar (USD)</option>
+                    <option value="EUR">Euro (EUR)</option>
+                    <option value="BTC">Bitcoin (BTC)</option>
+                </select>
+            </div>
+        </div>
+
+        <table class="table">
             <thead>
                 <tr>
-                    <th>#</th>
-                    <th>Name</th>
-                    <th>Price</th>
-                    <th>1H</th>
-                    <th>1D</th>
-                    <th>1W</th>
-                    <th>Market Cap</th>
-                    <th>Volume (24h)</th>
-                    <th>Circulating Supply</th>
-                    <th>ATH</th>
+                    <th style="width: 4%">#</th>
+                    <th style="width: 20%">Name</th>
+                    <th style="width: 7%">Price</th>
+                    <th style="width: 6%">1H</th>
+                    <th style="width: 6%">1D</th>
+                    <th style="width: 6%">1W</th>
+                    <th style="width: 14%">Market Cap</th>
+                    <th style="width: 14%">Volume (24h)</th>
+                    <th style="width: 16%">Circulating Supply</th>
+                    <th style="width: 7%">ATH</th>
                 </tr>
             </thead>
             <tbody v-cloak v-if="coins.length">
@@ -76,6 +93,8 @@ var app = new Vue({
     el: '#app',
 
     data: {
+        baseCurrency: 'USD',
+        fetching: false,
         coins: []
     },
 
@@ -87,7 +106,7 @@ var app = new Vue({
 
         currency: function (value) {
             value = parseFloat(value);
-            return value.toLocaleString('en-US', { minimumFractionDigits: value < 10 ? 4 : 2, style: 'currency', currency: 'USD' });
+            return value.toLocaleString('en-US', { minimumFractionDigits: value < 10 ? 4 : 2, style: 'currency', currency: app.baseCurrency }).replace(/BTC\s/, '\u20bf');
         },
 
         percent: function (value) {
@@ -97,23 +116,37 @@ var app = new Vue({
     },
 
     created: function () {
+        if (localStorage.baseCurrency != null) {
+            this.baseCurrency = localStorage.baseCurrency;
+        }
+
         setInterval(this.fetchData, 10 * 1000);
         this.fetchData();
     },
 
+    watch: {
+        baseCurrency(newBaseCurrency) {
+            localStorage.baseCurrency = newBaseCurrency;
+            this.fetchData();
+        }
+    },
+
     methods: {
-        getColor: function (number) {
-            return parseFloat(number) > 0 ? 'positive' : 'negative';
+        getColor: function (value) {
+            return parseFloat(value) > 0 ? 'positive' : 'negative';
         },
 
         fetchData: function () {
-            var self = this;
-            var xhr = new XMLHttpRequest();
-            xhr.onload = function () {
-                self.coins = JSON.parse(xhr.responseText);
-            };
-            xhr.open('GET', 'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&price_change_percentage=1h,24h,7d');
-            xhr.send();
+            if (!this.fetching) {
+                this.fetching = true;
+                var xhr = new XMLHttpRequest();
+                xhr.onload = () => {
+                    this.coins = JSON.parse(xhr.responseText);
+                    this.fetching = false;
+                };
+                xhr.open('GET', 'https://api.coingecko.com/api/v3/coins/markets?vs_currency=' + this.baseCurrency + '&price_change_percentage=1h,24h,7d');
+                xhr.send();
+            }
         }
     }
 });
