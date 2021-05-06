@@ -7,21 +7,23 @@
     <script src="/vue.min.js"></script>
     <style>
 *{box-sizing:border-box}
-body,table,select{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubuntu,Cantarell,'Open Sans','Helvetica Neue',sans-serif;font-size:16px;line-height:1.5}
+html,body,table,select{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubuntu,Cantarell,'Open Sans','Helvetica Neue',sans-serif;font-size:16px;line-height:1.5}
 body{margin:0;color:#111;background-color:#fff;overflow-y:scroll}
 a{color:inherit;text-decoration:none;font-weight:bold}a:hover,a:focus{text-decoration:underline}
-#app{padding:.5em 1em;margin:0 auto;width:90em}[v-cloak]{display:none}
+#app{padding:.5rem 1rem;margin:0 auto;width:90rem}[v-cloak]{display:none}
 
 .columns{display:flex}.column{flex:1}
+.header{margin:1rem 0}
 .options{display:flex;justify-content:flex-end;align-items:center}
-.select{padding:.5em 1em}
+.select{padding:.5rem 1rem}
+.item{margin-right:1rem}
 
 .table{width:100%;border-collapse:collapse;table-layout:fixed}
 .table>thead>tr{border-bottom:2px solid #ccc}
 .table>tbody>tr{border-bottom:1px solid #ddd}
 .table td,.table th{padding:.5em 1em;text-align:left}
 .positive{color:green}.negative{color:red}
-.coin{height:4em}
+.coin{height:4rem}
 .coin-icon{width:32px;height:32px;margin-right:16px;vertical-align:middle}
 .coin-symbol{color:#777}
     </style>
@@ -30,7 +32,7 @@ a{color:inherit;text-decoration:none;font-weight:bold}a:hover,a:focus{text-decor
     <div id="app">
         <div class="columns">
             <div class="column">
-                <h1><a href="/">Cryptocurrency coins list</a></h1>
+                <h1 class="header"><a href="/">Cryptocurrency coins list</a></h1>
             </div>
 
             <div class="column options">
@@ -41,6 +43,30 @@ a{color:inherit;text-decoration:none;font-weight:bold}a:hover,a:focus{text-decor
                 </select>
             </div>
         </div>
+
+        <p v-cloak v-if="global != null">
+            <span class="item">
+                <strong>Total Market Cap:</strong>
+                {{ global.total_market_cap[baseCurrency.toLowerCase()] | currency(baseCurrency) }}
+                <span :class="getColor(global.market_cap_change_percentage_24h_usd)">
+                    {{ global.market_cap_change_percentage_24h_usd | changePercent }}
+                </span>
+            </span>
+
+            <span class="item">
+                <strong>Volume (24h):</strong>
+                {{ global.total_volume[baseCurrency.toLowerCase()] | currency(baseCurrency) }}
+            </span>
+
+            <span class="item">
+                <strong>Dominance:</strong>
+                BTC {{ global.market_cap_percentage.btc | percent }}
+                ETH {{ global.market_cap_percentage.eth | percent }}
+            </span>
+        </p>
+        <p v-else>
+            Loading...
+        </p>
 
         <table class="table">
             <thead>
@@ -57,19 +83,19 @@ a{color:inherit;text-decoration:none;font-weight:bold}a:hover,a:focus{text-decor
                     <th style="width: 7%">ATH</th>
                 </tr>
             </thead>
-            <tbody v-cloak v-if="coins.length">
+            <tbody v-cloak v-if="coins.length > 0">
                 <tr class="coin" v-for="coin in coins">
                     <td>{{ coin.market_cap_rank }}</td>
                     <td>
                         <img class="coin-icon" :src="coin.image" :alt="coin.name + ' icon'" loading="lazy">
                         {{ coin.name }} <span class="coin-symbol">{{ coin.symbol.toUpperCase() }}</span>
                     </td>
-                    <td>{{ coin.current_price | currency }}</td>
-                    <td :class="getColor(coin.price_change_percentage_1h_in_currency)">{{ coin.price_change_percentage_1h_in_currency | percent }}</td>
-                    <td :class="getColor(coin.price_change_percentage_24h_in_currency)">{{ coin.price_change_percentage_24h_in_currency | percent }}</td>
-                    <td :class="getColor(coin.price_change_percentage_7d_in_currency)">{{ coin.price_change_percentage_7d_in_currency | percent }}</td>
-                    <td>{{ coin.market_cap | currency }}</td>
-                    <td>{{ coin.total_volume | currency }}</td>
+                    <td>{{ coin.current_price | currency(baseCurrency) }}</td>
+                    <td :class="getColor(coin.price_change_percentage_1h_in_currency)">{{ coin.price_change_percentage_1h_in_currency | changePercent }}</td>
+                    <td :class="getColor(coin.price_change_percentage_24h_in_currency)">{{ coin.price_change_percentage_24h_in_currency | changePercent }}</td>
+                    <td :class="getColor(coin.price_change_percentage_7d_in_currency)">{{ coin.price_change_percentage_7d_in_currency | changePercent }}</td>
+                    <td>{{ coin.market_cap | currency(baseCurrency) }}</td>
+                    <td>{{ coin.total_volume | currency(baseCurrency) }}</td>
                     <td v-if="coin.total_supply != null && coin.circulating_supply != coin.total_supply">
                         {{ coin.circulating_supply | number }} {{ coin.symbol.toUpperCase() }}<br>
                         {{ coin.total_supply | number }} {{ coin.symbol.toUpperCase() }}
@@ -77,7 +103,7 @@ a{color:inherit;text-decoration:none;font-weight:bold}a:hover,a:focus{text-decor
                     <td v-else>
                         {{ coin.circulating_supply | number }} {{ coin.symbol.toUpperCase() }}
                     </td>
-                    <td>{{ coin.ath | currency }}</td>
+                    <td>{{ coin.ath | currency(baseCurrency) }}</td>
                 </tr>
             </tbody>
             <tbody v-else>
@@ -94,7 +120,9 @@ var app = new Vue({
 
     data: {
         baseCurrency: 'USD',
-        fetching: false,
+        fetchingGlobal: false,
+        fetchingCoins: false,
+        global: null,
         coins: []
     },
 
@@ -104,12 +132,21 @@ var app = new Vue({
             return value.toLocaleString('en-US', { minimumFractionDigits: value < 10 ? 4 : 2 });
         },
 
-        currency: function (value) {
+        currency: function (value, baseCurrency) {
             value = parseFloat(value);
-            return value.toLocaleString('en-US', { minimumFractionDigits: value < 10 ? 4 : 2, style: 'currency', currency: app.baseCurrency }).replace(/BTC\s/, '\u20bf');
+            return value.toLocaleString('en-US', {
+                minimumFractionDigits: value < 10 ? 4 : 2,
+                style: 'currency',
+                currency: baseCurrency
+            }).replace(/BTC\s/, '\u20bf');
         },
 
         percent: function (value) {
+            value = parseFloat(value);
+            return value.toFixed(2) + '%';
+        },
+
+        changePercent: function (value) {
             value = parseFloat(value);
             return (value > 0 ? '+' : '') + value.toFixed(2) + '%';
         }
@@ -120,29 +157,48 @@ var app = new Vue({
             this.baseCurrency = localStorage.baseCurrency;
         }
 
-        setInterval(this.fetchData, 10 * 1000);
-        this.fetchData();
+        setInterval(() => {
+            this.fetchGlobal();
+            this.fetchCoins();
+        }, 10 * 1000);
+
+        this.fetchGlobal();
+        this.fetchCoins();
     },
 
     watch: {
         baseCurrency(newBaseCurrency) {
             localStorage.baseCurrency = newBaseCurrency;
-            this.fetchData();
+            this.fetchCoins();
         }
     },
 
     methods: {
         getColor: function (value) {
-            return parseFloat(value) > 0 ? 'positive' : 'negative';
+            value = parseFloat(value);
+            return value > 0 ? 'positive' : 'negative';
         },
 
-        fetchData: function () {
-            if (!this.fetching) {
-                this.fetching = true;
-                var xhr = new XMLHttpRequest();
+        fetchGlobal: function () {
+            if (!this.fetchingGlobal) {
+                this.fetchingGlobal = true;
+                const xhr = new XMLHttpRequest();
+                xhr.onload = () => {
+                    this.global = JSON.parse(xhr.responseText).data;
+                    this.fetchingGlobal = false;
+                };
+                xhr.open('GET', 'https://api.coingecko.com/api/v3/global');
+                xhr.send();
+            }
+        },
+
+        fetchCoins: function () {
+            if (!this.fetchingCoins) {
+                this.fetchingCoins = true;
+                const xhr = new XMLHttpRequest();
                 xhr.onload = () => {
                     this.coins = JSON.parse(xhr.responseText);
-                    this.fetching = false;
+                    this.fetchingCoins = false;
                 };
                 xhr.open('GET', 'https://api.coingecko.com/api/v3/coins/markets?vs_currency=' + this.baseCurrency + '&price_change_percentage=1h,24h,7d');
                 xhr.send();
