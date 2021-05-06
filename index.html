@@ -22,6 +22,7 @@ a{color:inherit;text-decoration:none;font-weight:bold}a:hover,a:focus{text-decor
 .table>thead>tr{border-bottom:2px solid #ccc}
 .table>tbody>tr{border-bottom:1px solid #ddd}
 .table td,.table th{padding:.5em 1em;text-align:left}
+.table th{cursor:pointer;user-select:none}
 .positive{color:green}.negative{color:red}
 .coin{height:4rem}
 .coin-icon{width:32px;height:32px;margin-right:16px;vertical-align:middle}
@@ -48,7 +49,7 @@ a{color:inherit;text-decoration:none;font-weight:bold}a:hover,a:focus{text-decor
             <span class="item">
                 <strong>Total Market Cap:</strong>
                 {{ global.total_market_cap[baseCurrency.toLowerCase()] | currency(baseCurrency) }}
-                <span :class="getColor(global.market_cap_change_percentage_24h_usd)">
+                <span :class="changePercentColor(global.market_cap_change_percentage_24h_usd)">
                     {{ global.market_cap_change_percentage_24h_usd | changePercent }}
                 </span>
             </span>
@@ -71,29 +72,29 @@ a{color:inherit;text-decoration:none;font-weight:bold}a:hover,a:focus{text-decor
         <table class="table">
             <thead>
                 <tr>
-                    <th style="width: 4%">#</th>
-                    <th style="width: 20%">Name</th>
-                    <th style="width: 7%">Price</th>
-                    <th style="width: 6%">1H</th>
-                    <th style="width: 6%">1D</th>
-                    <th style="width: 6%">1W</th>
-                    <th style="width: 14%">Market Cap</th>
-                    <th style="width: 14%">Volume (24h)</th>
-                    <th style="width: 16%">Circulating Supply</th>
-                    <th style="width: 7%">ATH</th>
+                    <th style="width: 4%" @click="sortCoin('market_cap_rank')"># {{ sortCoinArrow('market_cap_rank') }}</th>
+                    <th style="width: 20%" @click="sortCoin('name')">Name {{ sortCoinArrow('name') }}</th>
+                    <th style="width: 7%" @click="sortCoin('current_price')">Price {{ sortCoinArrow('current_price') }}</th>
+                    <th style="width: 6%" @click="sortCoin('price_change_percentage_1h_in_currency')">1H {{ sortCoinArrow('price_change_percentage_1h_in_currency') }}</th>
+                    <th style="width: 6%" @click="sortCoin('price_change_percentage_24h_in_currency')">1D {{ sortCoinArrow('price_change_percentage_24h_in_currency') }}</th>
+                    <th style="width: 6%" @click="sortCoin('price_change_percentage_7d_in_currency')">1W {{ sortCoinArrow('price_change_percentage_7d_in_currency') }}</th>
+                    <th style="width: 14%" @click="sortCoin('market_cap')">Market Cap {{ sortCoinArrow('market_cap') }}</th>
+                    <th style="width: 14%" @click="sortCoin('total_volume')">Volume (24h) {{ sortCoinArrow('total_volume') }}</th>
+                    <th style="width: 16%" @click="sortCoin('circulating_supply')">Circulating Supply {{ sortCoinArrow('circulating_supply') }}</th>
+                    <th style="width: 7%" @click="sortCoin('ath')">ATH {{ sortCoinArrow('ath') }}</th>
                 </tr>
             </thead>
             <tbody v-cloak v-if="coins.length > 0">
-                <tr class="coin" v-for="coin in coins">
+                <tr class="coin" v-for="coin in sortedCoins">
                     <td>{{ coin.market_cap_rank }}</td>
                     <td>
                         <img class="coin-icon" :src="coin.image" :alt="coin.name + ' icon'" loading="lazy">
                         {{ coin.name }} <span class="coin-symbol">{{ coin.symbol.toUpperCase() }}</span>
                     </td>
                     <td>{{ coin.current_price | currency(baseCurrency) }}</td>
-                    <td :class="getColor(coin.price_change_percentage_1h_in_currency)">{{ coin.price_change_percentage_1h_in_currency | changePercent }}</td>
-                    <td :class="getColor(coin.price_change_percentage_24h_in_currency)">{{ coin.price_change_percentage_24h_in_currency | changePercent }}</td>
-                    <td :class="getColor(coin.price_change_percentage_7d_in_currency)">{{ coin.price_change_percentage_7d_in_currency | changePercent }}</td>
+                    <td :class="changePercentColor(coin.price_change_percentage_1h_in_currency)">{{ coin.price_change_percentage_1h_in_currency | changePercent }}</td>
+                    <td :class="changePercentColor(coin.price_change_percentage_24h_in_currency)">{{ coin.price_change_percentage_24h_in_currency | changePercent }}</td>
+                    <td :class="changePercentColor(coin.price_change_percentage_7d_in_currency)">{{ coin.price_change_percentage_7d_in_currency | changePercent }}</td>
                     <td>{{ coin.market_cap | currency(baseCurrency) }}</td>
                     <td>{{ coin.total_volume | currency(baseCurrency) }}</td>
                     <td v-if="coin.total_supply != null && coin.circulating_supply != coin.total_supply">
@@ -123,7 +124,9 @@ var app = new Vue({
         fetchingGlobal: false,
         fetchingCoins: false,
         global: null,
-        coins: []
+        coins: [],
+        coinsSortColumn: 'market_cap_rank',
+        coinsSortDir: 'asc'
     },
 
     filters: {
@@ -166,6 +169,18 @@ var app = new Vue({
         this.fetchCoins();
     },
 
+    computed:{
+        sortedCoins: function () {
+            return this.coins.sort((a, b) => {
+                let modifier = 1;
+                if (this.coinsSortDir == 'desc') modifier = -1;
+                if (a[this.coinsSortColumn] < b[this.coinsSortColumn]) return -1 * modifier;
+                if (a[this.coinsSortColumn] > b[this.coinsSortColumn]) return 1 * modifier;
+                return 0;
+            });
+        }
+    },
+
     watch: {
         baseCurrency(newBaseCurrency) {
             localStorage.baseCurrency = newBaseCurrency;
@@ -174,9 +189,22 @@ var app = new Vue({
     },
 
     methods: {
-        getColor: function (value) {
+        changePercentColor: function (value) {
             value = parseFloat(value);
             return value > 0 ? 'positive' : 'negative';
+        },
+
+        sortCoin: function (column) {
+            if (this.coinsSortColumn == column) {
+                this.coinsSortDir = this.coinsSortDir == 'asc' ? 'desc' : 'asc';
+            } else {
+                this.coinsSortColumn = column;
+                this.coinsSortDir = 'asc';
+            }
+        },
+
+        sortCoinArrow: function (column) {
+            return this.coinsSortColumn == column ? (this.coinsSortDir == 'asc' ? '\u2193' : '\u2191'  ) : '';
         },
 
         fetchGlobal: function () {
