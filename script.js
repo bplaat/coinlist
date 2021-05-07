@@ -2,6 +2,7 @@ const app = new Vue({
     el: '#app',
 
     data: {
+        darkMode: localStorage.darkMode == 'true' || false,
         baseCurrency: localStorage.baseCurrency || 'USD',
 
         fetchingGlobal: false,
@@ -69,6 +70,13 @@ const app = new Vue({
     },
 
     methods: {
+        updateDarkMode(darkMode) {
+            if (this.darkMode != darkMode) {
+                this.darkMode = darkMode;
+                localStorage.darkMode = darkMode;
+            }
+        },
+
         sortCoin(column) {
             if (this.coinsSortColumn == column) {
                 this.coinsSortDir = this.coinsSortDir == 'asc' ? 'desc' : 'asc';
