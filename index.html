@@ -64,7 +64,7 @@
                     </tr>
                 </thead>
                 <tbody v-cloak v-if="coins.length > 0">
-                    <tr class="coin" v-for="coin in sortedCoins">
+                    <tr class="coin" v-for="coin in sortedCoins" :key="coin.market_cap_rank">
                         <td>{{ coin.market_cap_rank }}</td>
                         <td>
                             <div class="coin-name">
@@ -96,7 +96,7 @@
             </table>
 
             <p class="pagination" v-cloak>
-                <button v-for="i in 20" @click="updateCoinPage(i)" :disabled="coinPage == i">{{ i }}</button>
+                <button v-for="i in 20" :key="i" @click="updateCoinPage(i)" :disabled="coinPage == i">{{ i }}</button>
             </p>
 
             <p>Made by <a href="https://bastiaan.ml/" target="_blank">Bastiaan van der Plaat</a> for you to get fast cryptocurrency coins information</p>
