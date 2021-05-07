@@ -8,99 +8,126 @@
     <script src="/vue.min.js"></script>
 </head>
 <body>
-    <div id="app" :class="'app' + (darkMode ? ' dark' : '')">
-        <div class="container">
-            <div class="columns">
-                <div class="column">
-                    <h1 class="header"><a href="/">Cryptocurrency coins list</a></h1>
-                </div>
-
-                <div class="column options">
-                    <button class="button" @click="updateDarkMode(!darkMode)">{{ darkMode ? 'Dark mode' : 'Light mode' }}</button>
-
-                    <select class="select" v-model="baseCurrency">
-                        <option value="USD">US Dollar (USD)</option>
-                        <option value="EUR">Euro (EUR)</option>
-                        <option value="BTC">Bitcoin (BTC)</option>
-                    </select>
-                </div>
+    <div id="app" class="app">
+        <div class="columns">
+            <div class="column">
+                <h1 class="header"><a href="/">Cryptocurrency coins list</a></h1>
             </div>
 
-            <p v-cloak v-if="global != null">
-                <span class="item">
-                    <strong>Total Market Cap:</strong>
-                    {{ global.total_market_cap[baseCurrency.toLowerCase()] | currency(baseCurrency) }}
-                    &nbsp;<change-percent :percent="global.market_cap_change_percentage_24h_usd" />
-                </span>
+            <div class="column options">
+                <button class="button" @click="updateDarkMode(!darkMode)">
+                    {{ darkMode ? 'Dark mode' : 'Light mode' }}
+                </button>
 
-                <span class="item">
-                    <strong>Volume (24h):</strong>
-                    {{ global.total_volume[baseCurrency.toLowerCase()] | currency(baseCurrency) }}
-                </span>
-
-                <span class="item">
-                    <strong>Dominance:</strong>
-                    BTC {{ global.market_cap_percentage.btc | percent }}
-                    &nbsp;ETH {{ global.market_cap_percentage.eth | percent }}
-                </span>
-            </p>
-            <p v-else>
-                Loading...
-            </p>
-
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th style="width: 4%" @click="sortCoin('market_cap_rank')"># {{ sortCoinArrow('market_cap_rank') }}</th>
-                        <th style="width: 16%" @click="sortCoin('name')">Name {{ sortCoinArrow('name') }}</th>
-                        <th style="width: 7%" @click="sortCoin('current_price')">Price {{ sortCoinArrow('current_price') }}</th>
-                        <th style="width: 8%" @click="sortCoin('price_change_percentage_1h_in_currency')">1H {{ sortCoinArrow('price_change_percentage_1h_in_currency') }}</th>
-                        <th style="width: 8%" @click="sortCoin('price_change_percentage_24h_in_currency')">1D {{ sortCoinArrow('price_change_percentage_24h_in_currency') }}</th>
-                        <th style="width: 8%" @click="sortCoin('price_change_percentage_7d_in_currency')">1W {{ sortCoinArrow('price_change_percentage_7d_in_currency') }}</th>
-                        <th style="width: 13%" @click="sortCoin('market_cap')">Market Cap {{ sortCoinArrow('market_cap') }}</th>
-                        <th style="width: 13%" @click="sortCoin('total_volume')">Volume (24h) {{ sortCoinArrow('total_volume') }}</th>
-                        <th style="width: 16%" @click="sortCoin('circulating_supply')">Circulating Supply {{ sortCoinArrow('circulating_supply') }}</th>
-                        <th style="width: 7%" @click="sortCoin('ath')">ATH {{ sortCoinArrow('ath') }}</th>
-                    </tr>
-                </thead>
-                <tbody v-cloak v-if="coins.length > 0">
-                    <tr class="coin" v-for="coin in sortedCoins" :key="coin.market_cap_rank">
-                        <td>{{ coin.market_cap_rank }}</td>
-                        <td>
-                            <div class="coin-name">
-                                <img class="coin-icon" :src="coin.image" :alt="coin.name + ' icon'" loading="lazy">
-                                <div>{{ coin.name }} <span class="coin-symbol">{{ coin.symbol.toUpperCase() }}</span></div>
-                            </div>
-                        </td>
-                        <td>{{ coin.current_price | currency(baseCurrency) }}</td>
-                        <td><change-percent :percent="coin.price_change_percentage_1h_in_currency" /></td>
-                        <td><change-percent :percent="coin.price_change_percentage_24h_in_currency" /></td>
-                        <td><change-percent :percent="coin.price_change_percentage_7d_in_currency" /></td>
-                        <td>{{ coin.market_cap | currency(baseCurrency) }}</td>
-                        <td>{{ coin.total_volume | currency(baseCurrency) }}</td>
-                        <td v-if="coin.total_supply != null && coin.circulating_supply != coin.total_supply">
-                            {{ coin.circulating_supply | number }} {{ coin.symbol.toUpperCase() }}<br>
-                            {{ coin.total_supply | number }} {{ coin.symbol.toUpperCase() }}
-                        </td>
-                        <td v-else>
-                            {{ coin.circulating_supply | number }} {{ coin.symbol.toUpperCase() }}
-                        </td>
-                        <td>{{ coin.ath | currency(baseCurrency) }}</td>
-                    </tr>
-                </tbody>
-                <tbody v-else>
-                    <tr>
-                        <td colspan="10">Loading...</td>
-                    </tr>
-                </tbody>
-            </table>
-
-            <p class="pagination" v-cloak>
-                <button v-for="i in 20" :key="i" @click="updateCoinPage(i)" :disabled="coinPage == i">{{ i }}</button>
-            </p>
-
-            <p>Made by <a href="https://bastiaan.ml/" target="_blank">Bastiaan van der Plaat</a> for you to get fast cryptocurrency coins information</p>
+                <select class="select" v-model="baseCurrency">
+                    <option value="USD">US Dollar (USD)</option>
+                    <option value="EUR">Euro (EUR)</option>
+                    <option value="BTC">Bitcoin (BTC)</option>
+                </select>
+            </div>
         </div>
+
+        <p v-cloak v-if="global != null">
+            <span class="item">
+                <strong>Total Market Cap:</strong>
+                {{ global.total_market_cap[baseCurrency.toLowerCase()] | currency(baseCurrency) }}&nbsp;
+                <change-percent :percent="global.market_cap_change_percentage_24h_usd" />
+            </span>
+
+            <span class="item">
+                <strong>Volume (24h):</strong>
+                {{ global.total_volume[baseCurrency.toLowerCase()] | currency(baseCurrency) }}
+            </span>
+
+            <span class="item">
+                <strong>Dominance:</strong>
+                BTC {{ global.market_cap_percentage.btc | percent }}&nbsp;
+                ETH {{ global.market_cap_percentage.eth | percent }}
+            </span>
+        </p>
+        <p v-else>
+            Loading...
+        </p>
+
+        <table class="table">
+            <thead>
+                <tr>
+                    <th style="width: 4%" @click="sortCoin('market_cap_rank')">
+                        # {{ sortCoinArrow('market_cap_rank') }}
+                    </th>
+                    <th style="width: 16%" @click="sortCoin('name')">
+                        Name {{ sortCoinArrow('name') }}
+                    </th>
+                    <th style="width: 7%" @click="sortCoin('current_price')">
+                        Price {{ sortCoinArrow('current_price') }}
+                    </th>
+                    <th style="width: 8%" @click="sortCoin('price_change_percentage_1h_in_currency')">
+                        1H {{ sortCoinArrow('price_change_percentage_1h_in_currency') }}
+                    </th>
+                    <th style="width: 8%" @click="sortCoin('price_change_percentage_24h_in_currency')">
+                        1D {{ sortCoinArrow('price_change_percentage_24h_in_currency') }}
+                    </th>
+                    <th style="width: 8%" @click="sortCoin('price_change_percentage_7d_in_currency')">
+                        1W {{ sortCoinArrow('price_change_percentage_7d_in_currency') }}
+                    </th>
+                    <th style="width: 13%" @click="sortCoin('market_cap')">
+                        Market Cap {{ sortCoinArrow('market_cap') }}
+                    </th>
+                    <th style="width: 13%" @click="sortCoin('total_volume')">
+                        Volume (24h) {{ sortCoinArrow('total_volume') }}
+                    </th>
+                    <th style="width: 16%" @click="sortCoin('circulating_supply')">
+                        Circulating Supply {{ sortCoinArrow('circulating_supply') }}
+                    </th>
+                    <th style="width: 7%" @click="sortCoin('ath')">
+                        ATH {{ sortCoinArrow('ath') }}
+                    </th>
+                </tr>
+            </thead>
+            <tbody v-cloak v-if="coins.length > 0">
+                <tr class="coin" v-for="coin in sortedCoins" :key="coin.market_cap_rank">
+                    <td>{{ coin.market_cap_rank }}</td>
+                    <td>
+                        <div class="coin-name">
+                            <img class="coin-icon" :src="coin.image" :alt="coin.name + ' icon'" loading="lazy">
+                            <div>{{ coin.name }} <span class="coin-symbol">{{ coin.symbol.toUpperCase() }}</span></div>
+                        </div>
+                    </td>
+                    <td>{{ coin.current_price | currency(baseCurrency) }}</td>
+                    <td>
+                        <change-percent :percent="coin.price_change_percentage_1h_in_currency" />
+                    </td>
+                    <td>
+                        <change-percent :percent="coin.price_change_percentage_24h_in_currency" />
+                    </td>
+                    <td>
+                        <change-percent :percent="coin.price_change_percentage_7d_in_currency" />
+                    </td>
+                    <td>{{ coin.market_cap | currency(baseCurrency) }}</td>
+                    <td>{{ coin.total_volume | currency(baseCurrency) }}</td>
+                    <td v-if="coin.total_supply != null && coin.circulating_supply != coin.total_supply">
+                        {{ coin.circulating_supply | number }} {{ coin.symbol.toUpperCase() }}<br>
+                        {{ coin.total_supply | number }} {{ coin.symbol.toUpperCase() }}
+                    </td>
+                    <td v-else>
+                        {{ coin.circulating_supply | number }} {{ coin.symbol.toUpperCase() }}
+                    </td>
+                    <td>{{ coin.ath | currency(baseCurrency) }}</td>
+                </tr>
+            </tbody>
+            <tbody v-else>
+                <tr>
+                    <td colspan="10">Loading...</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <p class="pagination" v-cloak>
+            <button v-for="i in 20" :key="i" @click="updateCoinPage(i)" :disabled="coinPage == i">{{ i }}</button>
+        </p>
+
+        <p>Made by <a href="https://bastiaan.ml/" target="_blank">Bastiaan van der Plaat</a> for you to get fast
+            cryptocurrency coins information</p>
     </div>
 
     <script src="/script.js"></script>

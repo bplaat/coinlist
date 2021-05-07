@@ -2,7 +2,7 @@ const app = new Vue({
     el: '#app',
 
     data: {
-        darkMode: localStorage.darkMode == 'true' || false,
+        darkMode: undefined,
         baseCurrency: localStorage.baseCurrency || 'USD',
 
         fetchingGlobal: false,
@@ -16,6 +16,10 @@ const app = new Vue({
     },
 
     watch: {
+        darkMode(newDarkMode) {
+            document.body.className = newDarkMode ? 'dark' : '';
+        },
+
         baseCurrency(newBaseCurrency) {
             localStorage.baseCurrency = newBaseCurrency;
 
@@ -131,6 +135,8 @@ const app = new Vue({
     },
 
     created() {
+        this.darkMode = localStorage.darkMode == 'true' || false;
+
         setInterval(() => {
             this.fetchGlobal();
             this.fetchCoins();
