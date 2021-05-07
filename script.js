@@ -1,23 +1,50 @@
-var app = new Vue({
+const app = new Vue({
     el: '#app',
 
     data: {
-        baseCurrency: 'USD',
+        baseCurrency: localStorage.baseCurrency || 'USD',
+
         fetchingGlobal: false,
-        fetchingCoins: false,
         global: null,
-        coins: [],
+
+        coinPage: localStorage.coinPage || 1,
         coinsSortColumn: 'market_cap_rank',
-        coinsSortDir: 'asc'
+        coinsSortDir: 'asc',
+        fetchingCoins: false,
+        coins: []
+    },
+
+    watch: {
+        baseCurrency(newBaseCurrency) {
+            localStorage.baseCurrency = newBaseCurrency;
+
+            if (this.fetchingCoins) {
+                this.fetchCoinsRequest.abort();
+                this.fetchingCoins = false;
+            }
+            this.fetchCoins();
+        }
+    },
+
+    computed: {
+        sortedCoins() {
+            return this.coins.sort((a, b) => {
+                let modifier = 1;
+                if (this.coinsSortDir == 'desc') modifier = -1;
+                if (a[this.coinsSortColumn] < b[this.coinsSortColumn]) return -1 * modifier;
+                if (a[this.coinsSortColumn] > b[this.coinsSortColumn]) return 1 * modifier;
+                return 0;
+            });
+        }
     },
 
     filters: {
-        number: function (value) {
+        number(value) {
             value = parseFloat(value);
             return value.toLocaleString('en-US', { minimumFractionDigits: value < 10 ? 4 : 2 });
         },
 
-        currency: function (value, baseCurrency) {
+        currency(value, baseCurrency) {
             value = parseFloat(value);
             return value.toLocaleString('en-US', {
                 minimumFractionDigits: value < 10 ? 4 : 2,
@@ -26,7 +53,7 @@ var app = new Vue({
             }).replace(/BTC\s/, '\u20bf');
         },
 
-        percent: function (value) {
+        percent(value) {
             value = parseFloat(value);
             return value.toFixed(2) + '%';
         }
@@ -41,41 +68,8 @@ var app = new Vue({
         }
     },
 
-    created: function () {
-        if (localStorage.baseCurrency != null) {
-            this.baseCurrency = localStorage.baseCurrency;
-        }
-
-        setInterval(() => {
-            this.fetchGlobal();
-            this.fetchCoins();
-        }, 10 * 1000);
-
-        this.fetchGlobal();
-        this.fetchCoins();
-    },
-
-    computed:{
-        sortedCoins: function () {
-            return this.coins.sort((a, b) => {
-                let modifier = 1;
-                if (this.coinsSortDir == 'desc') modifier = -1;
-                if (a[this.coinsSortColumn] < b[this.coinsSortColumn]) return -1 * modifier;
-                if (a[this.coinsSortColumn] > b[this.coinsSortColumn]) return 1 * modifier;
-                return 0;
-            });
-        }
-    },
-
-    watch: {
-        baseCurrency(newBaseCurrency) {
-            localStorage.baseCurrency = newBaseCurrency;
-            this.fetchCoins();
-        }
-    },
-
     methods: {
-        sortCoin: function (column) {
+        sortCoin(column) {
             if (this.coinsSortColumn == column) {
                 this.coinsSortDir = this.coinsSortDir == 'asc' ? 'desc' : 'asc';
             } else {
@@ -84,34 +78,57 @@ var app = new Vue({
             }
         },
 
-        sortCoinArrow: function (column) {
+        sortCoinArrow(column) {
             return this.coinsSortColumn == column ? (this.coinsSortDir == 'asc' ? '\u2193' : '\u2191'  ) : '';
         },
 
-        fetchGlobal: function () {
-            if (!this.fetchingGlobal) {
-                this.fetchingGlobal = true;
-                const xhr = new XMLHttpRequest();
-                xhr.onload = () => {
-                    this.global = JSON.parse(xhr.responseText).data;
-                    this.fetchingGlobal = false;
-                };
-                xhr.open('GET', 'https://api.coingecko.com/api/v3/global');
-                xhr.send();
+        updateCoinPage(page) {
+            if (this.coinPage != page) {
+                this.coinPage = page;
+                localStorage.coinPage = page;
+
+                if (this.fetchingCoins) {
+                    this.fetchCoinsRequest.abort();
+                    this.fetchingCoins = false;
+                }
+                this.fetchCoins();
             }
         },
 
-        fetchCoins: function () {
+        fetchGlobal() {
+            if (!this.fetchingGlobal) {
+                this.fetchingGlobal = true;
+                this.fetchGlobalRequest = new XMLHttpRequest();
+                this.fetchGlobalRequest.onload = () => {
+                    this.global = JSON.parse(this.fetchGlobalRequest.responseText).data;
+                    this.fetchingGlobal = false;
+                };
+                this.fetchGlobalRequest.open('GET', 'https://api.coingecko.com/api/v3/global');
+                this.fetchGlobalRequest.send();
+            }
+        },
+
+        fetchCoins() {
             if (!this.fetchingCoins) {
                 this.fetchingCoins = true;
-                const xhr = new XMLHttpRequest();
-                xhr.onload = () => {
-                    this.coins = JSON.parse(xhr.responseText);
+                this.fetchCoinsRequest = new XMLHttpRequest();
+                this.fetchCoinsRequest.onload = () => {
+                    this.coins = JSON.parse(this.fetchCoinsRequest.responseText);
                     this.fetchingCoins = false;
                 };
-                xhr.open('GET', 'https://api.coingecko.com/api/v3/coins/markets?vs_currency=' + this.baseCurrency + '&price_change_percentage=1h,24h,7d');
-                xhr.send();
+                this.fetchCoinsRequest.open('GET', 'https://api.coingecko.com/api/v3/coins/markets?page=' + this.coinPage + '&vs_currency=' + this.baseCurrency + '&price_change_percentage=1h,24h,7d');
+                this.fetchCoinsRequest.send();
             }
         }
+    },
+
+    created() {
+        setInterval(() => {
+            this.fetchGlobal();
+            this.fetchCoins();
+        }, 10 * 1000);
+
+        this.fetchGlobal();
+        this.fetchCoins();
     }
 });

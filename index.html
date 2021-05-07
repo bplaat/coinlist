@@ -92,6 +92,12 @@
             </tbody>
         </table>
 
+        <p class="buttons" v-cloak>
+            <button :class="'button' + (coinPage == i ? ' active' : '')" v-for="i in 20" @click="updateCoinPage(i)">
+                {{ i }}
+            </button>
+        </p>
+
         <p>Made by <a href="https://bastiaan.ml/" target="_blank">Bastiaan van der Plaat</a> for you to get fast cryptocurrency coins information</p>
     </div>
 
