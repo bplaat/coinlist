@@ -29,11 +29,15 @@ var app = new Vue({
         percent: function (value) {
             value = parseFloat(value);
             return value.toFixed(2) + '%';
-        },
+        }
+    },
 
-        changePercent: function (value) {
-            value = parseFloat(value);
-            return (value > 0 ? '+' : '') + value.toFixed(2) + '%';
+    components: {
+        'change-percent': {
+            props: [ 'percent' ],
+            template: `<span :class="percent > 0 ? 'positive' : 'negative'">
+                <span class="arrow">{{ percent > 0 ? '\u25b2' : '\u25bc' }}</span> {{ Math.abs(percent).toFixed(2) }} %
+            </span>`
         }
     },
 
@@ -71,11 +75,6 @@ var app = new Vue({
     },
 
     methods: {
-        changePercentColor: function (value) {
-            value = parseFloat(value);
-            return value > 0 ? 'positive' : 'negative';
-        },
-
         sortCoin: function (column) {
             if (this.coinsSortColumn == column) {
                 this.coinsSortDir = this.coinsSortDir == 'asc' ? 'desc' : 'asc';

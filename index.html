@@ -27,9 +27,7 @@
             <span class="item">
                 <strong>Total Market Cap:</strong>
                 {{ global.total_market_cap[baseCurrency.toLowerCase()] | currency(baseCurrency) }}
-                <span :class="changePercentColor(global.market_cap_change_percentage_24h_usd)">
-                    {{ global.market_cap_change_percentage_24h_usd | changePercent }}
-                </span>
+                &nbsp;<change-percent :percent="global.market_cap_change_percentage_24h_usd" />
             </span>
 
             <span class="item">
@@ -40,7 +38,7 @@
             <span class="item">
                 <strong>Dominance:</strong>
                 BTC {{ global.market_cap_percentage.btc | percent }}
-                ETH {{ global.market_cap_percentage.eth | percent }}
+                &nbsp;ETH {{ global.market_cap_percentage.eth | percent }}
             </span>
         </p>
         <p v-else>
@@ -51,13 +49,13 @@
             <thead>
                 <tr>
                     <th style="width: 4%" @click="sortCoin('market_cap_rank')"># {{ sortCoinArrow('market_cap_rank') }}</th>
-                    <th style="width: 20%" @click="sortCoin('name')">Name {{ sortCoinArrow('name') }}</th>
+                    <th style="width: 16%" @click="sortCoin('name')">Name {{ sortCoinArrow('name') }}</th>
                     <th style="width: 7%" @click="sortCoin('current_price')">Price {{ sortCoinArrow('current_price') }}</th>
-                    <th style="width: 6%" @click="sortCoin('price_change_percentage_1h_in_currency')">1H {{ sortCoinArrow('price_change_percentage_1h_in_currency') }}</th>
-                    <th style="width: 6%" @click="sortCoin('price_change_percentage_24h_in_currency')">1D {{ sortCoinArrow('price_change_percentage_24h_in_currency') }}</th>
-                    <th style="width: 6%" @click="sortCoin('price_change_percentage_7d_in_currency')">1W {{ sortCoinArrow('price_change_percentage_7d_in_currency') }}</th>
-                    <th style="width: 14%" @click="sortCoin('market_cap')">Market Cap {{ sortCoinArrow('market_cap') }}</th>
-                    <th style="width: 14%" @click="sortCoin('total_volume')">Volume (24h) {{ sortCoinArrow('total_volume') }}</th>
+                    <th style="width: 8%" @click="sortCoin('price_change_percentage_1h_in_currency')">1H {{ sortCoinArrow('price_change_percentage_1h_in_currency') }}</th>
+                    <th style="width: 8%" @click="sortCoin('price_change_percentage_24h_in_currency')">1D {{ sortCoinArrow('price_change_percentage_24h_in_currency') }}</th>
+                    <th style="width: 8%" @click="sortCoin('price_change_percentage_7d_in_currency')">1W {{ sortCoinArrow('price_change_percentage_7d_in_currency') }}</th>
+                    <th style="width: 13%" @click="sortCoin('market_cap')">Market Cap {{ sortCoinArrow('market_cap') }}</th>
+                    <th style="width: 13%" @click="sortCoin('total_volume')">Volume (24h) {{ sortCoinArrow('total_volume') }}</th>
                     <th style="width: 16%" @click="sortCoin('circulating_supply')">Circulating Supply {{ sortCoinArrow('circulating_supply') }}</th>
                     <th style="width: 7%" @click="sortCoin('ath')">ATH {{ sortCoinArrow('ath') }}</th>
                 </tr>
@@ -66,13 +64,15 @@
                 <tr class="coin" v-for="coin in sortedCoins">
                     <td>{{ coin.market_cap_rank }}</td>
                     <td>
-                        <img class="coin-icon" :src="coin.image" :alt="coin.name + ' icon'" loading="lazy">
-                        {{ coin.name }} <span class="coin-symbol">{{ coin.symbol.toUpperCase() }}</span>
+                        <div class="coin-name">
+                            <img class="coin-icon" :src="coin.image" :alt="coin.name + ' icon'" loading="lazy">
+                            <div>{{ coin.name }} <span class="coin-symbol">{{ coin.symbol.toUpperCase() }}</span></div>
+                        </div>
                     </td>
                     <td>{{ coin.current_price | currency(baseCurrency) }}</td>
-                    <td :class="changePercentColor(coin.price_change_percentage_1h_in_currency)">{{ coin.price_change_percentage_1h_in_currency | changePercent }}</td>
-                    <td :class="changePercentColor(coin.price_change_percentage_24h_in_currency)">{{ coin.price_change_percentage_24h_in_currency | changePercent }}</td>
-                    <td :class="changePercentColor(coin.price_change_percentage_7d_in_currency)">{{ coin.price_change_percentage_7d_in_currency | changePercent }}</td>
+                    <td><change-percent :percent="coin.price_change_percentage_1h_in_currency" /></td>
+                    <td><change-percent :percent="coin.price_change_percentage_24h_in_currency" /></td>
+                    <td><change-percent :percent="coin.price_change_percentage_7d_in_currency" /></td>
                     <td>{{ coin.market_cap | currency(baseCurrency) }}</td>
                     <td>{{ coin.total_volume | currency(baseCurrency) }}</td>
                     <td v-if="coin.total_supply != null && coin.circulating_supply != coin.total_supply">
@@ -91,6 +91,7 @@
                 </tr>
             </tbody>
         </table>
+
         <p>Made by <a href="https://bastiaan.ml/" target="_blank">Bastiaan van der Plaat</a> for you to get fast cryptocurrency coins information</p>
     </div>
 
