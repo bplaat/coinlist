@@ -23,6 +23,9 @@
                     <option value="USD">US Dollar (USD)</option>
                     <option value="EUR">Euro (EUR)</option>
                     <option value="BTC">Bitcoin (BTC)</option>
+                    <option value="SATS">Satoshi (SATS)</option>
+                    <option value="ETH">Ethereum (ETH)</option>
+                    <option value="BNB">Binance Coin (BNB)</option>
                 </select>
             </div>
         </div>
@@ -42,7 +45,8 @@
             <span class="item">
                 <strong>Dominance:</strong>
                 BTC {{ global.market_cap_percentage.btc | percent }}&nbsp;
-                ETH {{ global.market_cap_percentage.eth | percent }}
+                ETH {{ global.market_cap_percentage.eth | percent }}&nbsp;
+                BNB {{ global.market_cap_percentage.bnb | percent }}
             </span>
         </p>
         <p v-else>

@@ -52,11 +52,23 @@ const app = new Vue({
 
         currency(value, baseCurrency) {
             value = parseFloat(value);
-            return value.toLocaleString('en-US', {
-                minimumFractionDigits: value < 10 ? 4 : 2,
+
+            let decimals = value < 10 ? 4 : 2;
+            if (baseCurrency == 'BTC' || baseCurrency == 'ETH' || baseCurrency == 'BNB') decimals = value < 10 ? 6 : 4;
+            if (baseCurrency == 'SATS') decimals = 0;
+
+            let currencyString = value.toLocaleString('en-US', {
                 style: 'currency',
-                currency: baseCurrency
-            }).replace(/BTC\s/, '\u20bf');
+                currency: (baseCurrency == 'USD' || baseCurrency == 'EUR') ? baseCurrency : 'USD',
+                minimumFractionDigits: decimals
+            });
+
+            if (baseCurrency == 'BTC') currencyString = currencyString.replace('$', '\u20bf');
+            if (baseCurrency == 'SATS') currencyString = currencyString.replace('$', '') + ' SATS';
+            if (baseCurrency == 'ETH') currencyString = currencyString.replace('$', '\u039e');
+            if (baseCurrency == 'BNB') currencyString = currencyString.replace('$', '') + ' BNB';
+
+            return currencyString;
         },
 
         percent(value) {
@@ -68,8 +80,8 @@ const app = new Vue({
     components: {
         'change-percent': {
             props: [ 'percent' ],
-            template: `<span :class="percent > 0 ? 'positive' : 'negative'">
-                <span class="arrow">{{ percent > 0 ? '\u25b2' : '\u25bc' }}</span> {{ Math.abs(percent).toFixed(2) }} %
+            template: `<span :class="{ positive: percent > 0, negative: percent < 0 }">
+                <span class="arrow">{{ percent > 0 ? '\u25b2' : (percent < 0 ? '\u25bc' : '') }}</span> {{ Math.abs(percent).toFixed(2) }} %
             </span>`
         }
     },
