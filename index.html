@@ -33,13 +33,13 @@
         <p v-cloak v-if="global != undefined">
             <span class="item">
                 <strong>Total Market Cap:</strong>
-                {{ global.total_market_cap[baseCurrency.toLowerCase()] | currency(baseCurrency) }}&nbsp;
+                {{ global.total_market_cap[baseCurrency.toLowerCase()] | currency(baseCurrency, false) }}&nbsp;
                 <change-percent :percent="global.market_cap_change_percentage_24h_usd" />
             </span>
 
             <span class="item">
                 <strong>Volume (24h):</strong>
-                {{ global.total_volume[baseCurrency.toLowerCase()] | currency(baseCurrency) }}
+                {{ global.total_volume[baseCurrency.toLowerCase()] | currency(baseCurrency, false) }}
             </span>
 
             <span class="item">
@@ -107,8 +107,8 @@
                     <td>
                         <change-percent :percent="coin.price_change_percentage_7d_in_currency" />
                     </td>
-                    <td>{{ coin.market_cap | currency(baseCurrency) }}</td>
-                    <td>{{ coin.total_volume | currency(baseCurrency) }}</td>
+                    <td>{{ coin.market_cap | currency(baseCurrency, false) }}</td>
+                    <td>{{ coin.total_volume | currency(baseCurrency, false) }}</td>
                     <td v-if="coin.total_supply != null && coin.circulating_supply != coin.total_supply">
                         {{ coin.circulating_supply | number }} {{ coin.symbol.toUpperCase() }}<br>
                         {{ coin.total_supply | number }} {{ coin.symbol.toUpperCase() }}

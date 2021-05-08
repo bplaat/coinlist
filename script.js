@@ -47,20 +47,20 @@ const app = new Vue({
     filters: {
         number(value) {
             value = parseFloat(value);
-            return value.toLocaleString('en-US', { minimumFractionDigits: value < 10 ? 4 : 2 });
+            return value.toLocaleString('en-US', { maximumFractionDigits: 0 });
         },
 
-        currency(value, baseCurrency) {
+        currency(value, baseCurrency, showDecimals = true) {
             value = parseFloat(value);
 
             let decimals = value < 10 ? 4 : 2;
             if (baseCurrency == 'BTC' || baseCurrency == 'ETH' || baseCurrency == 'BNB') decimals = value < 10 ? 6 : 4;
-            if (baseCurrency == 'SATS') decimals = 0;
+            if (baseCurrency == 'SATS' || showDecimals == false) decimals = 0;
 
             let currencyString = value.toLocaleString('en-US', {
                 style: 'currency',
                 currency: (baseCurrency == 'USD' || baseCurrency == 'EUR') ? baseCurrency : 'USD',
-                minimumFractionDigits: decimals
+                maximumFractionDigits: decimals
             });
 
             if (baseCurrency == 'BTC') currencyString = currencyString.replace('$', '\u20bf');
