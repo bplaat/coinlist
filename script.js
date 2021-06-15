@@ -53,9 +53,11 @@ const app = new Vue({
         currency(value, baseCurrency, showDecimals = true) {
             value = parseFloat(value);
 
-            let decimals = value < 10 ? 4 : 2;
-            if (baseCurrency == 'BTC' || baseCurrency == 'ETH' || baseCurrency == 'BNB') decimals = value < 10 ? 6 : 4;
-            if (baseCurrency == 'SATS' || showDecimals == false) decimals = 0;
+            let decimals = value < 10 ? (value < 0.1 ? 8 : 4) : 2;
+            if (baseCurrency == 'BTC' || baseCurrency == 'ETH' || baseCurrency == 'BNB')
+                decimals = value < 10 ? (value < 0.1 ? 12 : 6) : 4;
+            if (baseCurrency == 'SATS') decimals = value < 1 ? 4 : 0;
+            if (showDecimals == false) decimals = 0;
 
             let currencyString = value.toLocaleString('en-US', {
                 style: 'currency',
