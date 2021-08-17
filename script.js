@@ -3,6 +3,8 @@ const app = new Vue({
 
     data: {
         darkMode: undefined,
+        onlyStarred: undefined,
+        starredCoins: [],
         baseCurrency: localStorage.baseCurrency || 'USD',
 
         fetchingGlobal: false,
@@ -21,6 +23,10 @@ const app = new Vue({
             document.body.className = darkMode ? 'dark' : '';
         },
 
+        onlyStarred(onlyStarred) {
+            localStorage.onlyStarred = onlyStarred;
+        },
+
         baseCurrency(baseCurrency) {
             localStorage.baseCurrency = baseCurrency;
             this.fetchCoins();
@@ -34,13 +40,18 @@ const app = new Vue({
 
     computed: {
         sortedCoins() {
-            return this.coins.sort((a, b) => {
+            let coins = this.coins.sort((a, b) => {
                 let modifier = 1;
                 if (this.coinsSortDir == 'desc') modifier = -1;
                 if (a[this.coinsSortColumn] < b[this.coinsSortColumn]) return -1 * modifier;
                 if (a[this.coinsSortColumn] > b[this.coinsSortColumn]) return 1 * modifier;
                 return 0;
             });
+
+            if (this.onlyStarred) {
+                coins = coins.filter(coin => this.starredCoins.indexOf(coin.id) != -1);
+            }
+            return coins;
         }
     },
 
@@ -102,6 +113,16 @@ const app = new Vue({
             return this.coinsSortColumn == column ? (this.coinsSortDir == 'asc' ? '\u2193' : '\u2191'  ) : '';
         },
 
+        starCoin(coinId) {
+            const coinPosition = this.starredCoins.indexOf(coinId);
+            if (coinPosition == -1) {
+                this.starredCoins.push(coinId);
+            } else {
+                this.starredCoins.splice(coinPosition, 1);
+            }
+            localStorage.starredCoins = JSON.stringify(this.starredCoins);
+        },
+
         fetchGlobal() {
             if (this.fetchingGlobal) {
                 this.fetchGlobalRequest.abort();
@@ -135,6 +156,8 @@ const app = new Vue({
 
     created() {
         this.darkMode = localStorage.darkMode == 'true' || false;
+        this.onlyStarred = localStorage.onlyStarred == 'true' || false;
+        this.starredCoins = JSON.parse(localStorage.starredCoins || '[]');
 
         setInterval(() => {
             this.fetchGlobal();
