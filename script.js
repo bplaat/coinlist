@@ -77,16 +77,15 @@ const app = new Vue({
             });
 
             if (baseCurrency == 'BTC') currencyString = currencyString.replace('$', '\u20bf');
-            if (baseCurrency == 'SATS') currencyString = currencyString.replace('$', '') + ' SATS';
+            if (baseCurrency == 'SATS') currencyString = `${currencyString.replace('$', '')} SATS`;
             if (baseCurrency == 'ETH') currencyString = currencyString.replace('$', '\u039e');
-            if (baseCurrency == 'BNB') currencyString = currencyString.replace('$', '') + ' BNB';
+            if (baseCurrency == 'BNB') currencyString = `${currencyString.replace('$', '')} BNB`;
 
             return currencyString;
         },
 
         percent(value) {
-            value = parseFloat(value);
-            return value.toFixed(2) + '%';
+            return `${parseFloat(value).toFixed(2)}%`;
         }
     },
 
@@ -110,7 +109,7 @@ const app = new Vue({
         },
 
         sortCoinArrow(column) {
-            return this.coinsSortColumn == column ? (this.coinsSortDir == 'asc' ? '\u2193' : '\u2191'  ) : '';
+            return this.coinsSortColumn == column ? (this.coinsSortDir == 'asc' ? '\u2193' : '\u2191') : '';
         },
 
         starCoin(coinId) {
@@ -149,7 +148,7 @@ const app = new Vue({
                 this.coins = JSON.parse(this.fetchCoinsRequest.responseText);
                 this.fetchingCoins = false;
             };
-            this.fetchCoinsRequest.open('GET', 'https://api.coingecko.com/api/v3/coins/markets?page=' + this.coinsPage + '&vs_currency=' + this.baseCurrency + '&price_change_percentage=1h,24h,7d');
+            this.fetchCoinsRequest.open('GET', `https://api.coingecko.com/api/v3/coins/markets?page=${this.coinsPage}&vs_currency=${this.baseCurrency}&price_change_percentage=1h,24h,7d`);
             this.fetchCoinsRequest.send();
         }
     },
