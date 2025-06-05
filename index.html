@@ -1,18 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cryptocurrency coins list</title>
     <link rel="icon" href="data:,">
-    <link rel="stylesheet" href="/style.css">
-    <script src="/vue.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+    <script src="vue.min.js"></script>
 </head>
+
 <body>
     <div id="app" class="app">
         <div class="columns">
             <div class="column">
-                <h1 class="header"><a href="/">Cryptocurrency coins list</a></h1>
+                <h1 class="header"><a href=".">Cryptocurrency coins list</a></h1>
             </div>
 
             <div class="column options">
@@ -99,7 +101,8 @@
                         <td>
                             <div class="coin-name">
                                 <img class="coin-icon" :src="coin.image" :alt="coin.name + ' icon'" loading="lazy">
-                                <div>{{ coin.name }} <span class="coin-symbol">{{ coin.symbol.toUpperCase() }}</span></div>
+                                <div>{{ coin.name }} <span class="coin-symbol">{{ coin.symbol.toUpperCase() }}</span>
+                                </div>
                             </div>
                         </td>
                         <td>{{ coin.current_price | currency(baseCurrency) }}</td>
@@ -125,7 +128,8 @@
                         <td>
                             <button @click="starCoin(coin.id)">
                                 <svg class="icon" viewBox="0 0 24 24">
-                                    <path :d="starredCoins.indexOf(coin.id) != -1 ? 'M12,17.27L18.18,21L16.54,13.97L22,9.24L14.81,8.62L12,2L9.19,8.62L2,9.24L7.45,13.97L5.82,21L12,17.27Z' :
+                                    <path
+                                        :d="starredCoins.indexOf(coin.id) != -1 ? 'M12,17.27L18.18,21L16.54,13.97L22,9.24L14.81,8.62L12,2L9.19,8.62L2,9.24L7.45,13.97L5.82,21L12,17.27Z' :
                                         'M12,15.39L8.24,17.66L9.23,13.38L5.91,10.5L10.29,10.13L12,6.09L13.71,10.13L18.09,10.5L14.77,13.38L15.76,17.66M22,9.24L14.81,8.63L12,2L9.19,8.63L2,9.24L7.45,13.97L5.82,21L12,17.27L18.18,21L16.54,13.97L22,9.24Z'" />
                                 </svg>
                             </button>
@@ -147,10 +151,13 @@
             <button v-for="i in 20" :key="i" @click="coinsPage = i" :disabled="coinsPage == i">{{ i }}</button>
         </p>
 
-        <p>Made by <a href="https://bplaat.nl/" target="_blank">Bastiaan van der Plaat</a> for you to get fast cryptocurrency coins information</p>
-        <p>Download now our experimental native <a href="https://github.com/bplaat/android-apps/releases">Android app</a> for your mobile devices!</p>
+        <p>Made by <a href="https://bplaat.nl/" target="_blank">Bastiaan van der Plaat</a> for you to get fast
+            cryptocurrency coins information</p>
+        <p>Download now our experimental native <a href="https://github.com/bplaat/android-apps/releases">Android
+                app</a> for your mobile devices!</p>
     </div>
 
-    <script src="/script.js"></script>
+    <script src="script.js"></script>
 </body>
+
 </html>
